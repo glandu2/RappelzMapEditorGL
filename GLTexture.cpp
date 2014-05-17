@@ -3,8 +3,12 @@
 #include <stdio.h>
 #include <GL/glew.h>
 
-GLTexture::GLTexture()
-{
+GLTexture::GLTexture() : imgData(0), width(0), height(0), channels(0) {
+}
+
+GLTexture::~GLTexture() {
+	if(imgData)
+		SOIL_free_image_data(imgData);
 }
 
 bool GLTexture::loadDDS(const char* filename) {
@@ -18,10 +22,18 @@ bool GLTexture::loadDDS(const char* filename) {
 	return true;
 }
 
-bool GLTexture::loadToGpu() {
+void GLTexture::unload() {
 	unloadFromGpu();
 
-	glId = SOIL_create_OGL_texture(imgData, width, height, channels, 0, SOIL_FLAG_MIPMAPS | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_COMPRESS_TO_DXT | SOIL_FLAG_INVERT_Y);
+	if(imgData) {
+		SOIL_free_image_data(imgData);
+		imgData = 0;
+		width = height = channels = 0;
+	}
+}
+
+bool GLTexture::loadToGpu() {
+	glId = SOIL_create_OGL_texture(imgData, width, height, channels, glId, SOIL_FLAG_MIPMAPS | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_COMPRESS_TO_DXT | SOIL_FLAG_INVERT_Y);
 
 	return glId != 0;
 }
@@ -31,4 +43,12 @@ void GLTexture::unloadFromGpu() {
 		glDeleteTextures(1, &glId);
 
 	glId = 0;
+}
+
+void GLTexture::select() {
+	glBindTexture(GL_TEXTURE_2D, glId);
+}
+
+void GLTexture::unselect() {
+	glBindTexture(GL_TEXTURE_2D, 0);
 }

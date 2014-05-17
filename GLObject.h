@@ -4,7 +4,7 @@
 class GLObject {
 public:
 	GLObject() : glId(0) {}
-	virtual ~GLObject() {}
+	virtual ~GLObject() { unloadFromGpu(); }
 
 	virtual unsigned int getId() { if(glId == 0) loadToGpu(); return glId; }
 

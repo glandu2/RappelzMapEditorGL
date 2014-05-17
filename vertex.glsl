@@ -1,9 +1,11 @@
 #version 130
 
+uniform mat4x4 projectionMatrix;
+uniform mat4x4 cameraMatrix;
+
 in vec3 vertexPosition_modelspace;
 
 void main(void)
 {
-    gl_Position.xyz = vertexPosition_modelspace;
-    gl_Position.w = 1.0;
+    gl_Position = projectionMatrix * cameraMatrix * vec4(vertexPosition_modelspace.x, vertexPosition_modelspace.y, vertexPosition_modelspace.z, 1.0);
 }

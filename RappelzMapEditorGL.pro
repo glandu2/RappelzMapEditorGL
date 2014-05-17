@@ -13,8 +13,9 @@ QT += opengl
 TARGET = RappelzMapEditorGL
 TEMPLATE = app
 CONFIG += debug_and_release debug_and_release_target
+QMAKE_CXXFLAGS += -std=c++11
 
-LIBS += -lGLU -lGLEW
+unix: LIBS += -lGLU -lGLEW
 
 
 SOURCES += main.cpp\
@@ -24,7 +25,12 @@ SOURCES += main.cpp\
     Simple-OpenGL-Image-Library/src/image_helper.c \
     Simple-OpenGL-Image-Library/src/SOIL.c \
     Simple-OpenGL-Image-Library/src/stb_image_aug.c \
-    GLTexture.cpp
+    GLTexture.cpp \
+    GLMesh.cpp \
+    MeshObjLoader.cpp \
+    GLCamera.cpp \
+    GLRenderer.cpp \
+    GLProgram.cpp
 
 HEADERS  += MainWindow.h \
     GLViewport.h \
@@ -35,10 +41,72 @@ HEADERS  += MainWindow.h \
     Simple-OpenGL-Image-Library/src/stb_image_aug.h \
     Simple-OpenGL-Image-Library/src/stbi_DDS_aug.h \
     GLObject.h \
-    GLTexture.h
+    GLTexture.h \
+    GLMesh.h \
+    MeshObjLoader.h \
+    GLCamera.h \
+    GLRenderer.h \
+    GLProgram.h
 
 FORMS    += MainWindow.ui
 
 OTHER_FILES += \
     vertex.glsl \
     fragment.glsl
+
+
+######################
+# BTRFdom
+######################
+
+INCLUDEPATH += $$PWD/../BTRFdom/shared-lib/common $$PWD/../BTRFdom/shared-lib/interfaces
+DEPENDPATH += $$PWD/../BTRFdom/shared-lib/common $$PWD/../BTRFdom/shared-lib/interfaces
+
+unix:!macx: LIBS += -L$$PWD/../BTRFdom/build-linux-gnu-amd64-bin/ -lBTRFdom
+unix:!macx: PRE_TARGETDEPS += $$PWD/../BTRFdom/build-linux-gnu-amd64-bin/libBTRFdom.a
+
+win32: LIBS += -L$$PWD/../BTRFdom/build-msvc2010-bin/ -lBTRFdom
+win32: PRE_TARGETDEPS += $$PWD/../BTRFdom/build-msvc2010-bin/BTRFdom.lib
+
+
+######################
+# libuv
+######################
+
+INCLUDEPATH += $$PWD/../RappelzUnified/libuv/include
+DEPENDPATH += $$PWD/../RappelzUnified/libuv/include
+
+unix:!macx: LIBS += -L$$PWD/../RappelzUnified/build-linux-amd64-bin/ -luv
+unix:!macx: PRE_TARGETDEPS += $$PWD/../RappelzUnified/build-linux-amd64-bin/libuv.a
+
+
+######################
+# RappelzLib
+######################
+
+INCLUDEPATH += $$PWD/../RappelzUnified/RappelzLib/src
+DEPENDPATH += $$PWD/../RappelzUnified/RappelzLib/src
+
+unix:!macx: LIBS += -L$$PWD/../RappelzUnified/build-linux-amd64-bin/ -lRappelzLib
+unix:!macx: PRE_TARGETDEPS += $$PWD/../RappelzUnified/build-linux-amd64-bin/libRappelzLib.a
+
+
+######################
+# glew (windows only)
+######################
+
+win32: DEFINES += GLEW_STATIC
+
+win32: INCLUDEPATH += D:/Programmes/Programmation/libraries/glew-1.10.0/include
+win32: DEPENDPATH += D:/Programmes/Programmation/libraries/glew-1.10.0/include
+
+win32: LIBS += -LD:/Programmes/Programmation/libraries/glew-1.10.0/lib/Release/Win32/ -lglew32s
+win32: PRE_TARGETDEPS += D:/Programmes/Programmation/libraries/glew-1.10.0/lib/Release/Win32/glew32s.lib
+
+
+######################
+# glm
+######################
+
+INCLUDEPATH += glm
+DEPENDPATH += glm
