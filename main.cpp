@@ -1,6 +1,7 @@
 #include "MainWindow.h"
 #include <QApplication>
 #include "GLMesh.h"
+#include <QMetaType>
 
 int main(int argc, char *argv[])
 {

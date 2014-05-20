@@ -4,6 +4,7 @@
 #include <GL/glew.h>
 #include <QGLWidget>
 #include <glm/mat4x4.hpp>
+#include <QElapsedTimer>
 
 class GLCamera;
 class GLMesh;
@@ -27,12 +28,17 @@ public slots:
 
 protected:
 	virtual void keyPressEvent(QKeyEvent *keyEvent);
+	virtual void keyReleaseEvent(QKeyEvent *keyEvent);
 	virtual void mouseMoveEvent(QMouseEvent *event);
 	virtual void mousePressEvent(QMouseEvent *event);
 	virtual void mouseReleaseEvent(QMouseEvent *event);
 
+	void keyStateChanged(QKeyEvent *keyEvent, bool pressed);
+	void updateCameraPos(float delta);
+
 private:
 	QTimer *updateTimer;
+	QElapsedTimer frameTime;
 	GLuint VertexArrayID;
 	GLuint vertexbuffer;
 
@@ -52,6 +58,14 @@ private:
 	int lastMouseX;
 	int lastMouseY;
 	float mouseSensivity;
+
+	float speed;
+	bool moveForward;
+	bool moveBackward;
+	bool moveLeftward;
+	bool moveRightward;
+	bool moveDownward;
+	bool moveUpward;
 };
 
 #endif // GLVIEWPORT_H

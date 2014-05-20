@@ -12,7 +12,7 @@ class GLRenderer
 public:
 	GLRenderer(GLCamera* camera, GLViewport* viewport);
 
-	void addMesh(GLMesh* mesh);
+	void addMesh(GLMesh *mesh);
 
 	void render();
 

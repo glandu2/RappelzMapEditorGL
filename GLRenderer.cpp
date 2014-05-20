@@ -15,6 +15,6 @@ void GLRenderer::render() {
 
 		mesh->select();
 
-		glDrawElements(GL_TRIANGLES, mesh->getIndicesCount(), GL_UNSIGNED_SHORT, reinterpret_cast<const GLvoid*>(0));
+		glDrawElements(mesh->getRenderType(), mesh->getIndicesCount(), mesh->getIndexSize(), reinterpret_cast<const GLvoid*>(mesh->getIndicesOffset()));
 	}
 }

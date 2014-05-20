@@ -5,8 +5,11 @@
 #include <QKeyEvent>
 #include "GLCamera.h"
 #include "GLRenderer.h"
-#include "GLMesh.h"
+#include "GLStaticMesh.h"
+#include "Terrain.h"
 #include "GLProgram.h"
+
+
 #include <glm/glm.hpp>
 #include <glm/gtx/euler_angles.hpp>
 
@@ -24,7 +27,14 @@ GLViewport::GLViewport(QWidget *parent) :
 	setFocusPolicy(Qt::ClickFocus);
 
 	mouseSensivity = 0.01;
+	speed = 50*60;
 	moveCamera = false;
+	moveForward = false;
+	moveBackward = false;
+	moveLeftward = false;
+	moveRightward = false;
+	moveDownward = false;
+	moveUpward = false;
 }
 
 GLViewport::~GLViewport() {
@@ -32,28 +42,65 @@ GLViewport::~GLViewport() {
 }
 
 void GLViewport::keyPressEvent(QKeyEvent *keyEvent) {
+	keyStateChanged(keyEvent, true);
+}
+
+void GLViewport::keyReleaseEvent(QKeyEvent *keyEvent) {
+	keyStateChanged(keyEvent, false);
+}
+
+void GLViewport::keyStateChanged(QKeyEvent *keyEvent, bool pressed) {
 	switch(keyEvent->key()) {
 		case Qt::Key_Escape:
 			close();
 			break;
 
+		case Qt::Key_Z:
 		case Qt::Key_Up:
-			camera->translate(glm::vec3(0.1, 0.0, 0));
+			moveForward = pressed;
 			break;
 
+		case Qt::Key_S:
 		case Qt::Key_Down:
-			camera->translate(glm::vec3(-0.1, 0.0, 0));
+			moveBackward = pressed;
 			break;
 
+		case Qt::Key_D:
 		case Qt::Key_Right:
-			camera->translate(glm::vec3(0, -0.1, 0.0));
+			moveRightward = pressed;
 			break;
 
+		case Qt::Key_Q:
 		case Qt::Key_Left:
-			camera->translate(glm::vec3(0, 0.1, 0.0));
+			moveLeftward = pressed;
+			break;
+
+		case Qt::Key_C:
+			moveDownward = pressed;
+			break;
+
+		case Qt::Key_Space:
+			moveUpward = pressed;
 			break;
 
 	}
+}
+
+void GLViewport::updateCameraPos(float delta) {
+	static int slowdownFPSUpdate = 0;
+	slowdownFPSUpdate++;
+	if(slowdownFPSUpdate >= 100) {
+		parentWidget()->parentWidget()->setWindowTitle(QString("FPS: %1").arg(1/delta));
+		slowdownFPSUpdate = 0;
+	}
+	float adjustedCameraSpeed = speed * delta;
+
+	if(moveForward) camera->translate(glm::vec3(adjustedCameraSpeed, 0, 0));
+	if(moveBackward) camera->translate(glm::vec3(-adjustedCameraSpeed, 0, 0));
+	if(moveLeftward) camera->translate(glm::vec3(0,adjustedCameraSpeed, 0));
+	if(moveRightward) camera->translate(glm::vec3(0,-adjustedCameraSpeed, 0));
+	if(moveUpward) camera->translate(glm::vec3(0,0,adjustedCameraSpeed));
+	if(moveDownward) camera->translate(glm::vec3(0,0,-adjustedCameraSpeed));
 }
 
 void GLViewport::mouseMoveEvent(QMouseEvent *event) {
@@ -93,7 +140,8 @@ void GLViewport::mouseReleaseEvent(QMouseEvent *event) {
 
 
 void GLViewport::updateGL() {
-	glDraw();
+	glDraw(); //extra call to unneeded context change
+	//paintGL();
 }
 
 void GLViewport::initializeGL() {
@@ -102,7 +150,8 @@ void GLViewport::initializeGL() {
 	cameraPitch = cameraYaw = 0;
 
 	camera = new GLCamera;
-	mesh = new GLMesh;
+	Terrain *terrain = new Terrain;
+	mesh = terrain;
 	program = new GLProgram;
 	renderer = new GLRenderer(camera, this);
 
@@ -123,7 +172,8 @@ void GLViewport::initializeGL() {
 	mesh->indices.push_back(1);
 	mesh->indices.push_back(2);*/
 
-	mesh->loadFromNx3("test.nx3");
+	//mesh->loadFromNx3("test.nx3");
+	terrain->loadFromNfm("m009_004.nfm");
 	mesh->loadToGpu();
 
 	program->loadShaders("vertex.glsl", "fragment.glsl");
@@ -137,6 +187,11 @@ void GLViewport::initializeGL() {
 	renderer->addMesh(mesh);
 
 	resizeGL(width(), height());
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);	//wireframe
+	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_ALPHA_TEST);
+	glEnable(GL_CULL_FACE);
+	glDisable(GL_DITHER);
 }
 
 void GLViewport::resizeGL(int width, int height) {
@@ -151,10 +206,15 @@ void GLViewport::resizeGL(int width, int height) {
 		return;
 
 	glViewport(0, 0, width, height);
-	projectionMatrix = glm::perspective(float(45.0*M_PI/180), float(width)/height, 0.1f, 5000.0f) * coordTranform;
+	projectionMatrix = glm::perspective(float(45.0*M_PI/180), float(width)/height, 1.0f, 327680.0f) * coordTranform;
 }
 
 void GLViewport::paintGL() {
+	if(frameTime.isValid())
+		updateCameraPos(frameTime.restart()/1000.0f);
+	else
+		frameTime.start();
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glUniformMatrix4fv(projectionMatrixUniform, 1, GL_FALSE, &projectionMatrix[0][0]);

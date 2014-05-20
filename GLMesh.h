@@ -2,39 +2,39 @@
 #define GLMESH_H
 
 #include "GLObject.h"
-#include <glm/vec3.hpp>
-#include <glm/vec2.hpp>
-#include <vector>
+#include "GL/glew.h"
 
 class GLMesh : public GLObject
 {
 public:
-	struct VertexAttribute {
-		glm::vec3 pos;
-		glm::vec3 normal;
-		glm::vec2 texCoord;
+	enum RenderType {
+		RT_Points = GL_POINTS,
+		RT_LineStrip = GL_LINE_STRIP,
+		RT_LineLoop = GL_LINE_LOOP,
+		RT_Lines = GL_LINES,
+		RT_LineStripAdjacency = GL_LINE_STRIP_ADJACENCY,
+		RT_LinesAdjacency = GL_LINES_ADJACENCY,
+		RT_TriangleStrip = GL_TRIANGLE_STRIP,
+		RT_TriangleFan = GL_TRIANGLE_FAN,
+		RT_Triangles = GL_TRIANGLES,
+		RT_TriangleStripAdjacency = GL_TRIANGLE_STRIP_ADJACENCY,
+		RT_TrianglesAdjacency = GL_TRIANGLES_ADJACENCY,
+		RT_Patches = GL_PATCHES
+	};
+
+	enum IndexSize {
+		IS_Byte = GL_UNSIGNED_BYTE,
+		IS_Short = GL_UNSIGNED_SHORT,
+		IS_Int = GL_UNSIGNED_INT
 	};
 
 public:
-	GLMesh();
-
-	void loadFromNx3(const char* filename);
-
-	int getIndicesCount() { return indices.size(); }
-
-	virtual bool loadToGpu();
-	virtual void unloadFromGpu();
-	virtual void select();
-	virtual void unselect();
-
-
-	bool hasNormals;
-	std::vector<VertexAttribute> vertexAttributes;
-	std::vector<unsigned short> indices;
-
-private:
-	unsigned int vertexVboId;
-	unsigned int indexVboId;
+	virtual RenderType getRenderType(int batch = 0) = 0;
+	virtual IndexSize getIndexSize(int batch = 0) = 0;
+	virtual int getIndicesCount(int batch = 0) = 0;
+	virtual int getIndicesOffset(int batch = 0) { return 0; }
+	virtual int getBatchCount() { return 1; }
+	virtual void select(int batch = 0) = 0;
 };
 
 #endif // GLMESH_H

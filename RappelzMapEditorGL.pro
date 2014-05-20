@@ -13,7 +13,7 @@ QT += opengl
 TARGET = RappelzMapEditorGL
 TEMPLATE = app
 CONFIG += debug_and_release debug_and_release_target
-QMAKE_CXXFLAGS += -std=c++11
+unix: QMAKE_CXXFLAGS += -std=c++11 -fno-exceptions -fno-rtti
 
 unix: LIBS += -lGLU -lGLEW
 
@@ -26,11 +26,14 @@ SOURCES += main.cpp\
     Simple-OpenGL-Image-Library/src/SOIL.c \
     Simple-OpenGL-Image-Library/src/stb_image_aug.c \
     GLTexture.cpp \
-    GLMesh.cpp \
     MeshObjLoader.cpp \
     GLCamera.cpp \
     GLRenderer.cpp \
-    GLProgram.cpp
+    GLProgram.cpp \
+    Model.cpp \
+    Terrain.cpp \
+    GLStaticMesh.cpp \
+    TerrainBlendMap.cpp
 
 HEADERS  += MainWindow.h \
     GLViewport.h \
@@ -42,11 +45,14 @@ HEADERS  += MainWindow.h \
     Simple-OpenGL-Image-Library/src/stbi_DDS_aug.h \
     GLObject.h \
     GLTexture.h \
-    GLMesh.h \
     MeshObjLoader.h \
     GLCamera.h \
     GLRenderer.h \
-    GLProgram.h
+    GLProgram.h \
+    Model.h \
+    Terrain.h \
+    GLStaticMesh.h \
+    TerrainBlendMap.h
 
 FORMS    += MainWindow.ui
 
@@ -73,22 +79,30 @@ win32: PRE_TARGETDEPS += $$PWD/../BTRFdom/build-msvc2010-bin/BTRFdom.lib
 # libuv
 ######################
 
-INCLUDEPATH += $$PWD/../RappelzUnified/libuv/include
-DEPENDPATH += $$PWD/../RappelzUnified/libuv/include
+#INCLUDEPATH += $$PWD/../RappelzUnified/libuv/include
+#DEPENDPATH += $$PWD/../RappelzUnified/libuv/include
 
-unix:!macx: LIBS += -L$$PWD/../RappelzUnified/build-linux-amd64-bin/ -luv
-unix:!macx: PRE_TARGETDEPS += $$PWD/../RappelzUnified/build-linux-amd64-bin/libuv.a
+#unix:!macx: LIBS += -L$$PWD/../RappelzUnified/build-linux-amd64-bin/ -luv
+#unix:!macx: PRE_TARGETDEPS += $$PWD/../RappelzUnified/build-linux-amd64-bin/libuv.a
+
+#win32: LIBS += -L$$PWD/../RappelzUnified/build-windows8-msvc2010-x86-bin/ -luv
+#win32: PRE_TARGETDEPS += $$PWD/../RappelzUnified/build-windows8-msvc2010-x86-bin/uv.lib
 
 
 ######################
 # RappelzLib
 ######################
 
-INCLUDEPATH += $$PWD/../RappelzUnified/RappelzLib/src
-DEPENDPATH += $$PWD/../RappelzUnified/RappelzLib/src
+#DEFINES += USING_RAPPELZLIB
 
-unix:!macx: LIBS += -L$$PWD/../RappelzUnified/build-linux-amd64-bin/ -lRappelzLib
-unix:!macx: PRE_TARGETDEPS += $$PWD/../RappelzUnified/build-linux-amd64-bin/libRappelzLib.a
+#INCLUDEPATH += $$PWD/../RappelzUnified/RappelzLib/src
+#DEPENDPATH += $$PWD/../RappelzUnified/RappelzLib/src
+
+#unix:!macx: LIBS += -L$$PWD/../RappelzUnified/build-linux-amd64-bin/ -lRappelzLib
+#unix:!macx: PRE_TARGETDEPS += $$PWD/../RappelzUnified/build-linux-amd64-bin/libRappelzLib.a
+
+#win32: LIBS += -L$$PWD/../RappelzUnified/build-windows8-msvc2010-x86-bin/ -lRappelzLib
+#win32: PRE_TARGETDEPS += $$PWD/../RappelzUnified/build-windows8-msvc2010-x86-bin/RappelzLib.lib
 
 
 ######################
