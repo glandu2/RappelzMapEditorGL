@@ -2,6 +2,8 @@
 #include "GLTexture.h"
 #include "GLProgram.h"
 #include "TerrainBlendMap.h"
+#include "TerrainTextureArray.h"
+#include <algorithm>
 
 #include <stdio.h>
 #include <string.h>
@@ -392,7 +394,7 @@ static TextureFile TEXTURES[] = {
 
 #define TEXTURE_COUNT (sizeof(TEXTURES)/sizeof(TextureFile))
 
-Terrain::Terrain() : blendMap(new TerrainBlendMap), shaderProgram(new GLProgram)
+Terrain::Terrain() : textureLayers(new TerrainTextureArray), blendMap(new TerrainBlendMap), shaderProgram(new GLProgram)
 {
 }
 
@@ -410,6 +412,9 @@ bool Terrain::loadFromNfm(const char* filename) {
 	NFM_HEADER_V22 header;
 
 	shaderProgram->loadShaders("vertex.glsl", "fragment.glsl");
+
+	std::vector<unsigned short> usedTextures;
+	std::vector<const char*> usedTexturesName;
 
 	FILE* file = fopen(filename, "rb");
 	if(!file) {
@@ -437,6 +442,63 @@ bool Terrain::loadFromNfm(const char* filename) {
 					vertices.push_back(glm::vec3(segmentX*6*42 + tileX*42, segmentY*6*42 + tileY*42, segments[segmentY][segmentX].vertices[tileY][tileX].height));
 				}
 			}
+		}
+	}
+
+	for(int segmentY = 0; segmentY < 64; segmentY++) {
+		for(int segmentX = 0; segmentX < 64; segmentX++) {
+			for(int texLayer = 0; texLayer < 3; texLayer++) {
+				for(int i = 0; i < TEXTURE_COUNT; i++) {
+					if(TEXTURES[i].id == segments[segmentY][segmentX].tile[texLayer] &&
+							std::find(usedTextures.begin(), usedTextures.end(), i) == usedTextures.end())
+					{
+						usedTextures.push_back(i);
+					}
+				}
+			}
+		}
+	}
+
+	assert(usedTextures.size() < 256 && "Too many used texture in map !");
+
+	for(size_t i = 0; i < usedTextures.size(); i++) {
+		usedTexturesName.push_back(TEXTURES[usedTextures[i]].filename);
+	}
+
+	textureLayers->loadDDS(usedTexturesName);
+
+	for(int blendMapY = 0; blendMapY < BLENDMAP_SIZE; blendMapY++) {
+		for(int blendMapX = 0; blendMapX < BLENDMAP_SIZE; blendMapX++) {
+			int segmentX = blendMapX/(4*6);
+			int segmentY = blendMapY/(4*6);
+			int tileX = (blendMapX/4) % 6;
+			int tileY = (blendMapY/4) % 6;
+			int posInTileX = blendMapX % 4; //texture splat dot position
+			int posInTileY = blendMapY % 4;
+
+			Segment* segment = &segments[segmentY][segmentX];
+			Vertex* vertex = &segment->vertices[tileY][tileX];
+
+			TerrainBlendMap::BlendElement blendElement;
+			memset(&blendElement, 0, sizeof(blendElement));
+
+			blendElement.alpha1 = (vertex->textureBlend[0] >> (2*posInTileX + 8*posInTileY)) & 0x3;
+			blendElement.alpha2 = (vertex->textureBlend[1] >> (2*posInTileX + 8*posInTileY)) & 0x3;
+
+			for(size_t i = 1; i < usedTextures.size(); i++) {
+				if(segment->tile[0] == TEXTURES[usedTextures.at(i)].id) {
+					blendElement.texIndices[0] = i;
+				}
+
+				if(segment->tile[1] == TEXTURES[usedTextures.at(i)].id) {
+					blendElement.texIndices[1] = i;
+				}
+
+				if(segment->tile[2] == TEXTURES[usedTextures.at(i)].id) {
+					blendElement.texIndices[2] = i;
+				}
+			}
+			blendMap->imgData.push_back(blendElement);
 		}
 	}
 
@@ -484,12 +546,9 @@ bool Terrain::loadToGpu() {
 
 	glBindVertexArray(0);
 
-	/*blendMap->loadToGpu();
-	for(size_t i = 0; i < textures.size(); i++)
-		textures[i]->loadToGpu();*/
-
-
 	shaderProgram->loadToGpu();
+	blendMap->loadToGpu();
+	textureLayers->loadToGpu();
 
 	return true;
 }
@@ -517,15 +576,12 @@ void Terrain::select(int batch) {
 
 	glBindVertexArray(glId);
 
-	/*int textureUnit = 0;
-	bindTextureUnit(GL_TEXTURE_2D, textureUnit, blendMap->getId(), "blendMap");
-	textureUnit++;
-
-	bindTextureUnit(GL_TEXTURE_2D_ARRAY, textureUnit, blendMap->getId(), "terrainTextures");*/
+	bindTextureUnit(GL_TEXTURE_2D, 0, blendMap->getId(), "blendMap");
+	bindTextureUnit(GL_TEXTURE_2D_ARRAY, 1, textureLayers->getId(), "terrainTextures");
 }
 
 void Terrain::bindTextureUnit(int textureType, int texUnit, unsigned int texId, const char* uniformName) {
-	glActiveTexture(texUnit);
+	glActiveTexture(GL_TEXTURE0 + texUnit);
 	glBindTexture(textureType, texId);
 	unsigned int blendMapUniform = glGetUniformLocation(shaderProgram->getId(), uniformName);
 	glUniform1i(blendMapUniform, texUnit);
@@ -533,5 +589,4 @@ void Terrain::bindTextureUnit(int textureType, int texUnit, unsigned int texId, 
 
 void Terrain::unselect() {
 	glBindVertexArray(0);
-	//glPolygonMode(GL_FRONT, GL_FILL);
 }

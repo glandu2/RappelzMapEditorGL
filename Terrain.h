@@ -9,6 +9,7 @@ class GLStaticMesh;
 class GLTexture;
 class GLProgram;
 class TerrainBlendMap;
+class TerrainTextureArray;
 
 class Terrain : public GLMesh
 {
@@ -29,7 +30,7 @@ public:
 	virtual int getIndicesCount(int batch = 0) { return indices.size(); }
 
 protected:
-	void Terrain::bindTextureUnit(int textureType, int texUnit, unsigned int texId, const char* uniformName);
+	void bindTextureUnit(int textureType, int texUnit, unsigned int texId, const char* uniformName);
 
 private:
 #pragma pack(1)
@@ -68,7 +69,7 @@ private:
 
 	std::vector<glm::vec3> vertices;
 	std::vector<unsigned int> indices;
-	GLTexture* textures;
+	TerrainTextureArray* textureLayers;
 	TerrainBlendMap* blendMap;
 	GLProgram* shaderProgram;
 

@@ -33,7 +33,8 @@ SOURCES += main.cpp\
     Model.cpp \
     Terrain.cpp \
     GLStaticMesh.cpp \
-    TerrainBlendMap.cpp
+    TerrainBlendMap.cpp \
+    TerrainTextureArray.cpp
 
 HEADERS  += MainWindow.h \
     GLViewport.h \
@@ -52,7 +53,8 @@ HEADERS  += MainWindow.h \
     Model.h \
     Terrain.h \
     GLStaticMesh.h \
-    TerrainBlendMap.h
+    TerrainBlendMap.h \
+    TerrainTextureArray.h
 
 FORMS    += MainWindow.ui
 

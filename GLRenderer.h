@@ -2,6 +2,7 @@
 #define GLRENDERER_H
 
 #include <vector>
+#include "glm/mat4x4.hpp"
 
 class GLViewport;
 class GLCamera;
@@ -21,6 +22,7 @@ private:
 	GLViewport* viewport;
 
 	std::vector<GLMesh*> meshes;
+	glm::mat4 modelMatrix;
 };
 
 #endif // GLRENDERER_H

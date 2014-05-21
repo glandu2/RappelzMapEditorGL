@@ -22,7 +22,7 @@ GLViewport::GLViewport(QWidget *parent) :
 {
 	updateTimer = new QTimer(this);
 	connect(updateTimer, SIGNAL(timeout()), this, SLOT(updateGL()));
-	updateTimer->start(1000 / 60);
+	updateTimer->start(1000 / 30);
 
 	setFocusPolicy(Qt::ClickFocus);
 
@@ -144,8 +144,53 @@ void GLViewport::updateGL() {
 	//paintGL();
 }
 
+void GLAPIENTRY onOpenglError(GLenum source,
+				   GLenum type,
+				   GLuint id,
+				   GLenum severity,
+				   GLsizei length,
+				   const GLchar* message,
+				   void* userParam)
+{
+	const char* sourceStr = "Unknown";
+	const char* typeStr = "Unknown";
+	const char* severityStr = "Unknown";
+	switch(source) {
+		case GL_DEBUG_SOURCE_API: sourceStr = "API"; break;
+		case GL_DEBUG_SOURCE_WINDOW_SYSTEM: sourceStr = "WINDOW_SYSTEM"; break;
+		case GL_DEBUG_SOURCE_SHADER_COMPILER: sourceStr = "SHADER_COMPILER"; break;
+		case GL_DEBUG_SOURCE_THIRD_PARTY: sourceStr = "THIRD_PARTY"; break;
+		case GL_DEBUG_SOURCE_APPLICATION: sourceStr = "APPLICATION"; break;
+		case GL_DEBUG_SOURCE_OTHER: sourceStr = "OTHER"; break;
+	}
+	switch(type) {
+		case GL_DEBUG_TYPE_ERROR: typeStr = "ERROR"; break;
+		case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: typeStr = "DEPRECATED_BEHAVIOR"; break;
+		case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: typeStr = "UNDEFINED_BEHAVIOR"; break;
+		case GL_DEBUG_TYPE_PORTABILITY: typeStr = "PORTABILITY"; break;
+		case GL_DEBUG_TYPE_PERFORMANCE: typeStr = "PERFORMANCE"; break;
+		case GL_DEBUG_TYPE_OTHER: typeStr = "OTHER"; break;
+	}
+	switch(severity){
+		case GL_DEBUG_SEVERITY_LOW: severityStr = "LOW"; break;
+		case GL_DEBUG_SEVERITY_MEDIUM: severityStr = "MEDIUM"; break;
+		case GL_DEBUG_SEVERITY_HIGH: severityStr = "HIGH"; break;
+	}
+	printf("OPENGL ERROR: source: %s(%d), type: %s(%d), id: %d, severity: %s(%d), length: %d, message: %s\n",
+		   sourceStr, source, typeStr, type, id, severityStr, severity, length, message);
+}
+
 void GLViewport::initializeGL() {
 	glewInit();
+	glEnable(GL_DEBUG_OUTPUT);
+
+	glDebugMessageCallback(&onOpenglError, 0);
+
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);	//wireframe
+	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_ALPHA_TEST);
+	glEnable(GL_CULL_FACE);
+	glDisable(GL_DITHER);
 
 	cameraPitch = cameraYaw = 0;
 
@@ -187,11 +232,6 @@ void GLViewport::initializeGL() {
 	renderer->addMesh(mesh);
 
 	resizeGL(width(), height());
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);	//wireframe
-	glEnable(GL_DEPTH_TEST);
-	glDisable(GL_ALPHA_TEST);
-	glEnable(GL_CULL_FACE);
-	glDisable(GL_DITHER);
 }
 
 void GLViewport::resizeGL(int width, int height) {

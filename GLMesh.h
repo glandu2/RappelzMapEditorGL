@@ -35,6 +35,7 @@ public:
 	virtual int getIndicesOffset(int batch = 0) { return 0; }
 	virtual int getBatchCount() { return 1; }
 	virtual void select(int batch = 0) = 0;
+	virtual unsigned int getModelMatrix() { return 0xFFFFFFFF; }
 };
 
 #endif // GLMESH_H
