@@ -70,6 +70,7 @@ private:
 	std::vector<glm::vec3> vertices;
 	std::vector<unsigned int> indices;
 	TerrainTextureArray* textureLayers;
+	std::vector<float> usedTexturesSize;
 	TerrainBlendMap* blendMap;
 	GLProgram* shaderProgram;
 

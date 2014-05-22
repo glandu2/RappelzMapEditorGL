@@ -463,6 +463,7 @@ bool Terrain::loadFromNfm(const char* filename) {
 
 	for(size_t i = 0; i < usedTextures.size(); i++) {
 		usedTexturesName.push_back(TEXTURES[usedTextures[i]].filename);
+		usedTexturesSize.push_back((64.0f*6.0f) / TEXTURES[usedTextures[i]].tileSize);
 	}
 
 	textureLayers->loadDDS(usedTexturesName);
@@ -597,6 +598,7 @@ void Terrain::select(int batch) {
 	bindTextureUnit(GL_TEXTURE_2D, 0, blendMap->blendMapIndexTexture, "blendMapIndices");
 	bindTextureUnit(GL_TEXTURE_2D, 1, blendMap->blendMapAlphaTexture, "blendMapAlpha");
 	bindTextureUnit(GL_TEXTURE_2D_ARRAY, 2, textureLayers->getId(), "terrainTextures");
+	glUniform1fv(glGetUniformLocation(shaderProgram->getId(), "terrainTexturesSize"), usedTexturesSize.size(), &usedTexturesSize[0]);
 }
 
 void Terrain::bindTextureUnit(int textureType, int texUnit, unsigned int texId, const char* uniformName) {

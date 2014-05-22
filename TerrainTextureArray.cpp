@@ -170,8 +170,11 @@ bool TerrainTextureArray::loadDDS(const std::vector<const char *>& filenames)
 	DDS_IMAGE_DATA DDSImageData;
 
 	for(size_t i = 0; i < filenames.size(); i++) {
-		if(!loadDDSTextureFile(filenames[i], &DDSImageData))
-			return false;
+		if(!loadDDSTextureFile(filenames[i], &DDSImageData)) {
+			printf("Faild to load textures\n");
+			//return false;
+			continue;
+		}
 
 		if(imgData.size() == 0) {
 			height = DDSImageData.height;
@@ -179,6 +182,9 @@ bool TerrainTextureArray::loadDDS(const std::vector<const char *>& filenames)
 			format = DDSImageData.format;
 			numMipMaps = DDSImageData.numMipMaps;
 		}
+
+		if(numMipMaps < DDSImageData.numMipMaps)
+			numMipMaps = DDSImageData.numMipMaps;
 
 		assert(DDSImageData.height == height);
 		assert(DDSImageData.width == width);
@@ -210,12 +216,9 @@ bool TerrainTextureArray::loadToGpu() {
 	else
 		blockSize = 16;
 
-	//glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, format, width, height, imgData.size(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	//glCompressedTexImage3D(GL_TEXTURE_2D_ARRAY, )
-
 	layerWidth = width;
 	layerHeight = height;
-	for(int i = 0; i < numMipMaps; i++) {
+	for(int i = 0; i == 0 || i < numMipMaps; i++) {
 		glTexImage3D(GL_TEXTURE_2D_ARRAY, i, format, layerWidth, layerHeight, imgData.size(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		layerWidth  /= 2;
 		layerHeight /= 2;

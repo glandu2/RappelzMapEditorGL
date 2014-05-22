@@ -22,7 +22,7 @@ GLViewport::GLViewport(QWidget *parent) :
 {
 	updateTimer = new QTimer(this);
 	connect(updateTimer, SIGNAL(timeout()), this, SLOT(updateGL()));
-	updateTimer->start(1000 / 30);
+    updateTimer->start(1000 / 60);
 
 	setFocusPolicy(Qt::ClickFocus);
 
@@ -184,7 +184,9 @@ void GLViewport::initializeGL() {
 	glewInit();
 	glEnable(GL_DEBUG_OUTPUT);
 
+#ifndef _WIN32
 	glDebugMessageCallback(&onOpenglError, 0);
+#endif
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);	//wireframe
 	glEnable(GL_DEPTH_TEST);
