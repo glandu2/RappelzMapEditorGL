@@ -467,38 +467,56 @@ bool Terrain::loadFromNfm(const char* filename) {
 
 	textureLayers->loadDDS(usedTexturesName);
 
-	for(int blendMapY = 0; blendMapY < BLENDMAP_SIZE; blendMapY++) {
-		for(int blendMapX = 0; blendMapX < BLENDMAP_SIZE; blendMapX++) {
-			int segmentX = blendMapX/(4*6);
-			int segmentY = blendMapY/(4*6);
-			int tileX = (blendMapX/4) % 6;
-			int tileY = (blendMapY/4) % 6;
-			int posInTileX = blendMapX % 4; //texture splat dot position
-			int posInTileY = blendMapY % 4;
+	for(int blendMapY = 0; blendMapY < BLENDMAP_SIZE_INDICES; blendMapY++) {
+		for(int blendMapX = 0; blendMapX < BLENDMAP_SIZE_INDICES; blendMapX++) {
+			int segmentX = blendMapX;
+			int segmentY = blendMapY;
 
 			Segment* segment = &segments[segmentY][segmentX];
-			Vertex* vertex = &segment->vertices[tileY][tileX];
 
-			TerrainBlendMap::BlendElement blendElement;
-			memset(&blendElement, 0, sizeof(blendElement));
+			TerrainBlendMap::BlendIndexElement blendIndexElement;
+			memset(&blendIndexElement, 0, sizeof(blendIndexElement));
 
-			blendElement.alpha1 = (vertex->textureBlend[0] >> (2*posInTileX + 8*posInTileY)) & 0x3;
-			blendElement.alpha2 = (vertex->textureBlend[1] >> (2*posInTileX + 8*posInTileY)) & 0x3;
 
-			for(size_t i = 1; i < usedTextures.size(); i++) {
+			for(size_t i = 0; i < usedTextures.size(); i++) {
 				if(segment->tile[0] == TEXTURES[usedTextures.at(i)].id) {
-					blendElement.texIndices[0] = i;
+					blendIndexElement.texIndices[0] = i;
 				}
 
 				if(segment->tile[1] == TEXTURES[usedTextures.at(i)].id) {
-					blendElement.texIndices[1] = i;
+					blendIndexElement.texIndices[1] = i;
 				}
 
 				if(segment->tile[2] == TEXTURES[usedTextures.at(i)].id) {
-					blendElement.texIndices[2] = i;
+					blendIndexElement.texIndices[2] = i;
 				}
 			}
-			blendMap->imgData.push_back(blendElement);
+			blendMap->blendMapIndices.push_back(blendIndexElement);
+		}
+	}
+
+
+	for(int blendMapY = 0; blendMapY < BLENDMAP_SIZE_ALPHA; blendMapY++) {
+		for(int blendMapX = 0; blendMapX < BLENDMAP_SIZE_ALPHA; blendMapX++) {
+			int segmentX = blendMapX/(4*6);
+			int segmentY = blendMapY/(4*6);
+
+			Segment* segment = &segments[segmentY][segmentX];
+
+			int tileX = (blendMapX/4) % 6;
+			int tileY = (blendMapY/4) % 6;
+			int posInTileX = blendMapX % 4;
+			int posInTileY = blendMapY % 4;
+
+			Vertex* vertex = &segment->vertices[tileY][tileX];
+
+			TerrainBlendMap::BlendAlphaElement blendAlphaElement;
+			memset(&blendAlphaElement, 0, sizeof(blendAlphaElement));
+
+			blendAlphaElement.alpha1 = ((vertex->textureBlend[0] >> (2*posInTileX + 8*posInTileY)) & 0x3) * 85;
+			blendAlphaElement.alpha2 = ((vertex->textureBlend[1] >> (2*posInTileX + 8*posInTileY)) & 0x3) * 85;
+
+			blendMap->blendMapAlpha.push_back(blendAlphaElement);
 		}
 	}
 
@@ -576,8 +594,9 @@ void Terrain::select(int batch) {
 
 	glBindVertexArray(glId);
 
-	bindTextureUnit(GL_TEXTURE_2D, 0, blendMap->getId(), "blendMap");
-	bindTextureUnit(GL_TEXTURE_2D_ARRAY, 1, textureLayers->getId(), "terrainTextures");
+	bindTextureUnit(GL_TEXTURE_2D, 0, blendMap->blendMapIndexTexture, "blendMapIndices");
+	bindTextureUnit(GL_TEXTURE_2D, 1, blendMap->blendMapAlphaTexture, "blendMapAlpha");
+	bindTextureUnit(GL_TEXTURE_2D_ARRAY, 2, textureLayers->getId(), "terrainTextures");
 }
 
 void Terrain::bindTextureUnit(int textureType, int texUnit, unsigned int texId, const char* uniformName) {

@@ -176,10 +176,14 @@ bool TerrainTextureArray::loadDDS(const std::vector<const char *>& filenames)
 		if(imgData.size() == 0) {
 			height = DDSImageData.height;
 			width  = DDSImageData.width;
-			components = DDSImageData.components;
 			format = DDSImageData.format;
 			numMipMaps = DDSImageData.numMipMaps;
 		}
+
+		assert(DDSImageData.height == height);
+		assert(DDSImageData.width == width);
+		assert(DDSImageData.format == format);
+		//assert(DDSImageData.numMipMaps == numMipMaps);
 
 		imgData.push_back(DDSImageData.pixels);
 	}

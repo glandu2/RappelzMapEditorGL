@@ -22,7 +22,6 @@ public:
 	std::vector<unsigned char *> imgData;
 	int width;
 	int height;
-	int components;
 	unsigned int format;
 	int numMipMaps;
 };
