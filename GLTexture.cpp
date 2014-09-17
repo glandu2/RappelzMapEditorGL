@@ -1,5 +1,5 @@
 #include "GLTexture.h"
-#include "Simple-OpenGL-Image-Library/src/SOIL.h"
+#include "SOIL/src/SOIL.h"
 #include <stdio.h>
 #include <GL/glew.h>
 

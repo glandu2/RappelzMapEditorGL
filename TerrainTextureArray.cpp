@@ -4,6 +4,12 @@
 #include <string.h>
 #include <string>
 
+extern "C" {
+#include "SOIL/src/SOIL.h"
+#include "SOIL/src/image_DXT.h"
+#include "SOIL/src/image_helper.h"
+}
+
 #define BLENDMAP_SIZE (64*6*4)
 
 TerrainTextureArray::TerrainTextureArray() : width(0), height(0) {
@@ -12,186 +18,95 @@ TerrainTextureArray::TerrainTextureArray() : width(0), height(0) {
 TerrainTextureArray::~TerrainTextureArray() {
 }
 
-#ifndef MAKEFOURCC
-	#define MAKEFOURCC(ch0, ch1, ch2, ch3)                              \
-				((unsigned int)(char)(ch0) | ((unsigned int)(char)(ch1) << 8) |   \
-				((unsigned int)(char)(ch2) << 16) | ((unsigned int)(char)(ch3) << 24 ))
-#endif //defined(MAKEFOURCC)
-
-/*
- * FOURCC codes for DX compressed-texture pixel formats
- */
-#define FOURCC_DXT1  (MAKEFOURCC('D','X','T','1'))
-#define FOURCC_DXT2  (MAKEFOURCC('D','X','T','2'))
-#define FOURCC_DXT3  (MAKEFOURCC('D','X','T','3'))
-#define FOURCC_DXT4  (MAKEFOURCC('D','X','T','4'))
-#define FOURCC_DXT5  (MAKEFOURCC('D','X','T','5'))
-
-struct DDS_IMAGE_DATA
-{
-	GLsizei  width;
-	GLsizei  height;
-	GLint    components;
-	GLenum   format;
-	int      numMipMaps;
-	GLubyte *pixels;
+struct ImageInfo {
+	unsigned char* data;
+	int width;
+	int height;
+	int channel;
 };
 
-struct DDS_PIXELFORMAT {
-  unsigned int dwSize;
-  unsigned int dwFlags;
-  unsigned int dwFourCC;
-  unsigned int dwRGBBitCount;
-  unsigned int dwRBitMask;
-  unsigned int dwGBitMask;
-  unsigned int dwBBitMask;
-  unsigned int dwABitMask;
-};
-
-struct DDS_HEADER {
-  unsigned int           dwSize;
-  unsigned int           dwFlags;
-  unsigned int           dwHeight;
-  unsigned int           dwWidth;
-  unsigned int           dwLinearSize;
-  unsigned int           dwDepth;
-  unsigned int           dwMipMapCount;
-  unsigned int           dwReserved1[11];
-  DDS_PIXELFORMAT ddpfPixelFormat;
-  unsigned int           dwCaps;
-  unsigned int           dwCaps2;
-  unsigned int           dwCaps3;
-  unsigned int           dwCaps4;
-  unsigned int           dwReserved2;
-};
-
-bool loadDDSTextureFile( const char *filename, DDS_IMAGE_DATA* pDDSImageData)
+bool TerrainTextureArray::loadDDS(const std::vector<std::string>& filenames)
 {
-	DDS_HEADER ddsd;
-	char filecode[4];
-	FILE *pFile;
-	int factor;
-	int bufferSize;
-	std::string absoluteDir = "textures/" + std::string(filename);
+	format = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+	width = 1;
+	height = 1;
 
-	// Open the file
-	pFile = fopen( absoluteDir.c_str(), "rb" );
+	std::vector<ImageInfo> images;
 
-	if( pFile == NULL )
-	{
-		printf("loadDDSTextureFile couldn't find, or failed to load \"%s\"", filename);
-		return false;
-	}
-
-	// Verify the file is a true .dds file
-	fread(filecode, 1, 4, pFile);
-
-	if( strncmp( filecode, "DDS ", 4 ) != 0 )
-	{
-		printf("The file \"%s\" doesn't appear to be a valid .dds file!", filename);
-		fclose(pFile);
-		return false;
-	}
-
-	// Get the surface descriptor
-	fread(&ddsd, sizeof(ddsd), 1, pFile );
-
-	memset(pDDSImageData, 0, sizeof(DDS_IMAGE_DATA));
-
-	//
-	// This .dds loader supports the loading of compressed formats DXT1, DXT3
-	// and DXT5.
-	//
-
-	switch( ddsd.ddpfPixelFormat.dwFourCC )
-	{
-		case FOURCC_DXT1:
-			// DXT1's compression ratio is 8:1
-			pDDSImageData->format = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
-			factor = 2;
-			break;
-
-		case FOURCC_DXT3:
-			// DXT3's compression ratio is 4:1
-			pDDSImageData->format = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-			factor = 4;
-			break;
-
-		case FOURCC_DXT5:
-			// DXT5's compression ratio is 4:1
-			pDDSImageData->format = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-			factor = 4;
-			break;
-
-		default:
-
-			printf("The file \"%s\" doesn't appear to be compressed "
-					"using DXT1, DXT3, or DXT5!", filename );
-			return false;
-	}
-
-	//
-	// How big will the buffer need to be to load all of the pixel data
-	// including mip-maps?
-	//
-
-	if( ddsd.dwLinearSize == 0 )
-	{
-		printf("dwLinearSize is 0!");
-		return false;
-	}
-
-	if( ddsd.dwMipMapCount > 1 )
-		bufferSize = ddsd.dwLinearSize * factor;
-	else
-		bufferSize = ddsd.dwLinearSize;
-
-	pDDSImageData->pixels = new unsigned char[bufferSize];
-
-	fread(pDDSImageData->pixels, 1, bufferSize, pFile);
-
-	// Close the file
-	fclose(pFile);
-
-	pDDSImageData->width      = ddsd.dwWidth;
-	pDDSImageData->height     = ddsd.dwHeight;
-	pDDSImageData->numMipMaps = ddsd.dwMipMapCount;
-
-	if( ddsd.ddpfPixelFormat.dwFourCC == FOURCC_DXT1)
-		pDDSImageData->components = 3;
-	else
-		pDDSImageData->components = 4;
-
-	return pDDSImageData;
-}
-
-bool TerrainTextureArray::loadDDS(const std::vector<const char *>& filenames)
-{
-	DDS_IMAGE_DATA DDSImageData;
+	imgData.clear();
 
 	for(size_t i = 0; i < filenames.size(); i++) {
-		if(!loadDDSTextureFile(filenames[i], &DDSImageData)) {
-			printf("Faild to load textures\n");
-			//return false;
+		std::string fullName = "textures/" + filenames[i];
+		ImageInfo imgInfo;
+
+		imgInfo.data = SOIL_load_image(fullName.c_str(), &imgInfo.width, &imgInfo.height, &imgInfo.channel, 0);
+
+		if(!imgInfo.data) {
+			printf("Faild to load texture %s\n", fullName.c_str());
 			continue;
 		}
 
-		if(imgData.size() == 0) {
-			height = DDSImageData.height;
-			width  = DDSImageData.width;
-			format = DDSImageData.format;
-			numMipMaps = DDSImageData.numMipMaps;
+		if(width < imgInfo.width)
+			width = imgInfo.width;
+
+		if(height < imgInfo.height)
+			height = imgInfo.height;
+
+		images.push_back(imgInfo);
+	}
+
+	numMipMaps = 1;
+	for(int mipmap = 1; mipmap < width; mipmap *= 2)
+		numMipMaps++;
+
+	for(size_t i = 0; i < images.size(); i++) {
+		std::vector<unsigned char> data;
+		unsigned char *image;
+		unsigned char *dds;
+		int ddsSize;
+		int imgWidth, imgHeight, imgChannels;
+
+
+		image = images[i].data;
+		imgWidth = images[i].width;
+		imgHeight = images[i].height;
+		imgChannels = images[i].channel;
+
+		if(height != imgHeight || width != imgWidth) {
+			unsigned char *resampled = (unsigned char*) malloc(imgChannels*width*height);
+			up_scale_image(image, imgWidth, imgHeight, imgChannels, resampled, width, height);
+			SOIL_free_image_data(image);
+			image = resampled;
+			imgWidth = width;
+			imgHeight = height;
 		}
 
-		if(numMipMaps < DDSImageData.numMipMaps)
-			numMipMaps = DDSImageData.numMipMaps;
+		unsigned char *resampled = new unsigned char[imgChannels*imgWidth*imgHeight];
+		int mipmapWidth = imgWidth;
+		int mipmapHeight = imgHeight;
+		int mipmapLevel = 0;
+		while((1 << mipmapLevel) <= imgWidth && (1 << mipmapLevel) <= imgHeight)
+		{
+			if(mipmapLevel > 0) {
+				mipmap_image(image, imgWidth, imgHeight, imgChannels, resampled, (1 << mipmapLevel), (1 << mipmapLevel) );
+				dds = convert_image_to_DXT1(resampled, mipmapWidth, mipmapHeight, imgChannels, &ddsSize );
+			} else {
+				dds = convert_image_to_DXT1(image, imgWidth, imgHeight, imgChannels, &ddsSize );
+			}
 
-		assert(DDSImageData.height == height);
-		assert(DDSImageData.width == width);
-		assert(DDSImageData.format == format);
-		//assert(DDSImageData.numMipMaps == numMipMaps);
+			assert(dds);
 
-		imgData.push_back(DDSImageData.pixels);
+			data.insert(data.end(), dds, dds + ddsSize);
+			SOIL_free_image_data(dds);
+
+			++mipmapLevel;
+			mipmapWidth /= 2;
+			mipmapHeight /= 2;
+		}
+		delete[] resampled;
+		SOIL_free_image_data(image);
+
+		imgData.push_back(data);
 	}
 
 	return true;
@@ -218,25 +133,25 @@ bool TerrainTextureArray::loadToGpu() {
 
 	layerWidth = width;
 	layerHeight = height;
-	for(int i = 0; i == 0 || i < numMipMaps; i++) {
+	for(int i = 0; i < numMipMaps; i++) {
 		glTexImage3D(GL_TEXTURE_2D_ARRAY, i, format, layerWidth, layerHeight, imgData.size(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		layerWidth  /= 2;
 		layerHeight /= 2;
 	}
-
-	while(glGetError() != GL_NO_ERROR);
 
 	for(size_t curTex = 0; curTex < imgData.size(); curTex++) {
 		layerWidth = width;
 		layerHeight = height;
 		offset = 0;
 
-		for( int i = 0; i < numMipMaps; ++i )
+		for(int i = 0; i < numMipMaps; ++i)
 		{
 			if( layerWidth  == 0 ) layerWidth  = 1;
 			if( layerHeight == 0 ) layerHeight = 1;
 
 			size = ((layerWidth+3)/4) * ((layerHeight+3)/4) * blockSize;
+
+			assert(offset + size <= (int)imgData[curTex].size());
 
 			glCompressedTexSubImage3D(GL_TEXTURE_2D_ARRAY,
 									  i,
@@ -246,11 +161,7 @@ bool TerrainTextureArray::loadToGpu() {
 									  1,
 									  format,
 									  size,
-									  imgData[curTex] + offset );
-
-			if(glGetError() != GL_NO_ERROR) {
-				printf("\n");
-			}
+									  &imgData[curTex][offset]);
 
 			offset += size;
 
@@ -259,7 +170,6 @@ bool TerrainTextureArray::loadToGpu() {
 			layerHeight /= 2;
 		}
 	}
-
 
 	return glId != 0;
 }

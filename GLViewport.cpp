@@ -22,12 +22,12 @@ GLViewport::GLViewport(QWidget *parent) :
 {
 	updateTimer = new QTimer(this);
 	connect(updateTimer, SIGNAL(timeout()), this, SLOT(updateGL()));
-    updateTimer->start(1000 / 60);
+	updateTimer->start(1000 / 60);
 
 	setFocusPolicy(Qt::ClickFocus);
 
 	mouseSensivity = 0.01;
-	speed = 50*60;
+	speed = 400;
 	moveCamera = false;
 	moveForward = false;
 	moveBackward = false;
@@ -35,10 +35,46 @@ GLViewport::GLViewport(QWidget *parent) :
 	moveRightward = false;
 	moveDownward = false;
 	moveUpward = false;
+	speedBoost = false;
+	useOrtho = false;
 }
 
 GLViewport::~GLViewport() {
 	delete updateTimer;
+}
+
+void GLViewport::setCameraX(float x) {
+	glm::vec3 position = camera->getPos();
+	position.x = x;
+
+	camera->setPos(position);
+}
+
+void GLViewport::setCameraY(float y) {
+	glm::vec3 position = camera->getPos();
+	position.y = y;
+
+	camera->setPos(position);
+}
+
+void GLViewport::setCameraZ(float z) {
+	glm::vec3 position = camera->getPos();
+	position.z = z;
+
+	camera->setPos(position);
+}
+
+
+void GLViewport::setCameraPitch(float pitch) {
+	cameraPitch = glm::clamp(pitch, float(-M_PI_2), float(M_PI_2));
+
+	camera->setRot(glm::quat(glm::vec3(0.0f, cameraPitch, cameraYaw)));
+}
+
+void GLViewport::setCameraYaw(float yaw) {
+	cameraYaw = glm::mod(yaw, float(M_PI*2));
+
+	camera->setRot(glm::quat(glm::vec3(0.0f, cameraPitch, cameraYaw)));
 }
 
 void GLViewport::keyPressEvent(QKeyEvent *keyEvent) {
@@ -51,26 +87,22 @@ void GLViewport::keyReleaseEvent(QKeyEvent *keyEvent) {
 
 void GLViewport::keyStateChanged(QKeyEvent *keyEvent, bool pressed) {
 	switch(keyEvent->key()) {
-		case Qt::Key_Escape:
-			close();
-			break;
-
-		case Qt::Key_Z:
+		case Qt::Key_E:
 		case Qt::Key_Up:
 			moveForward = pressed;
 			break;
 
-		case Qt::Key_S:
+		case Qt::Key_D:
 		case Qt::Key_Down:
 			moveBackward = pressed;
 			break;
 
-		case Qt::Key_D:
+		case Qt::Key_F:
 		case Qt::Key_Right:
 			moveRightward = pressed;
 			break;
 
-		case Qt::Key_Q:
+		case Qt::Key_S:
 		case Qt::Key_Left:
 			moveLeftward = pressed;
 			break;
@@ -83,17 +115,31 @@ void GLViewport::keyStateChanged(QKeyEvent *keyEvent, bool pressed) {
 			moveUpward = pressed;
 			break;
 
+		case Qt::Key_Shift:
+			speedBoost = pressed;
+			break;
+
+		case Qt::Key_5:
+		case Qt::Key_O:
+			if(pressed) {
+				useOrtho = !useOrtho;
+				resizeGL(width(), height());
+			}
+			break;
 	}
 }
 
 void GLViewport::updateCameraPos(float delta) {
-	static int slowdownFPSUpdate = 0;
+	/*static int slowdownFPSUpdate = 0;
 	slowdownFPSUpdate++;
 	if(slowdownFPSUpdate >= 100) {
 		parentWidget()->parentWidget()->setWindowTitle(QString("FPS: %1").arg(1/delta));
 		slowdownFPSUpdate = 0;
-	}
+	}*/
 	float adjustedCameraSpeed = speed * delta;
+
+	if(speedBoost)
+		adjustedCameraSpeed *= 10;
 
 	if(moveForward) camera->translate(glm::vec3(adjustedCameraSpeed, 0, 0));
 	if(moveBackward) camera->translate(glm::vec3(-adjustedCameraSpeed, 0, 0));
@@ -101,6 +147,13 @@ void GLViewport::updateCameraPos(float delta) {
 	if(moveRightward) camera->translate(glm::vec3(0,-adjustedCameraSpeed, 0));
 	if(moveUpward) camera->translate(glm::vec3(0,0,adjustedCameraSpeed));
 	if(moveDownward) camera->translate(glm::vec3(0,0,-adjustedCameraSpeed));
+
+	if(moveForward || moveBackward || moveLeftward || moveRightward || moveUpward || moveDownward) {
+		glm::vec3 position = camera->getPos();
+		emit cameraXChanged(position.x);
+		emit cameraYChanged(position.y);
+		emit cameraZChanged(position.z);
+	}
 }
 
 void GLViewport::mouseMoveEvent(QMouseEvent *event) {
@@ -108,19 +161,17 @@ void GLViewport::mouseMoveEvent(QMouseEvent *event) {
 		int dx = event->x() - lastMouseX;
 		int dy = event->y() - lastMouseY;
 
-		cameraYaw -= dx * mouseSensivity;
-
-		float lastPitch = cameraPitch;
-		cameraPitch = lastPitch + dy * mouseSensivity;
-
-		if(cameraPitch < -M_PI_2 || cameraPitch > M_PI_2) {
-			cameraPitch = lastPitch;
-		}
+		cameraYaw = glm::mod(cameraYaw - dx * mouseSensivity, float(M_PI*2));
+		cameraPitch = glm::clamp(cameraPitch + dy * mouseSensivity, float(-M_PI_2), float(M_PI_2));
 
 		camera->setRot(glm::quat(glm::vec3(0.0f, cameraPitch, cameraYaw)));
 
 		lastMouseX = event->x();
 		lastMouseY = event->y();
+
+
+		emit cameraPitchChanged(cameraPitch);
+		emit cameraYawChanged(cameraYaw);
 	}
 }
 
@@ -191,14 +242,15 @@ void GLViewport::initializeGL() {
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);	//wireframe
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_ALPHA_TEST);
-	glEnable(GL_CULL_FACE);
+	//glEnable(GL_CULL_FACE);
+	glDisable(GL_CULL_FACE);
 	glDisable(GL_DITHER);
 
 	cameraPitch = cameraYaw = 0;
 
 	camera = new GLCamera;
-	Terrain *terrain = new Terrain;
-	mesh = terrain;
+//	Terrain *terrain = new Terrain;
+//	mesh = terrain;
 	program = new GLProgram;
 	renderer = new GLRenderer(camera, this);
 
@@ -220,8 +272,8 @@ void GLViewport::initializeGL() {
 	mesh->indices.push_back(2);*/
 
 	//mesh->loadFromNx3("test.nx3");
-	terrain->loadFromNfm("m009_004.nfm");
-	mesh->loadToGpu();
+//	terrain->loadFromNfm("maps/m009_006.nfm");
+//	mesh->loadToGpu();
 
 	program->loadShaders("vertex.glsl", "fragment.glsl");
 	program->loadToGpu();
@@ -231,9 +283,11 @@ void GLViewport::initializeGL() {
 	projectionMatrixUniform = glGetUniformLocation(program->getId(), "projectionMatrix");
 	cameraMatrixUniform = glGetUniformLocation(program->getId(), "cameraMatrix");
 
-	renderer->addMesh(mesh);
+	//renderer->addMesh(mesh);
 
 	resizeGL(width(), height());
+
+	emit initialized();
 }
 
 void GLViewport::resizeGL(int width, int height) {
@@ -248,7 +302,16 @@ void GLViewport::resizeGL(int width, int height) {
 		return;
 
 	glViewport(0, 0, width, height);
-	projectionMatrix = glm::perspective(float(45.0*M_PI/180), float(width)/height, 1.0f, 327680.0f) * coordTranform;
+
+	if(!useOrtho)
+		projectionMatrix = glm::perspective(float(40.0*M_PI/180), float(width)/height, 1.0f, 327680.0f) * coordTranform;
+	else {
+		float w = 16128;
+		float h = 16128;
+
+		w *= float(width)/height;
+		projectionMatrix = glm::ortho(-w/2, w/2, -h/2, h/2, 0.1f, 327680.0f) * coordTranform;
+	}
 }
 
 void GLViewport::paintGL() {

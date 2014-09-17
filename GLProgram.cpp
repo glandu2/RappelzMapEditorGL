@@ -15,6 +15,7 @@ bool GLProgram::loadShaders(const char * vertex_file_path, const char * fragment
 	if(vertexShaderStream.is_open())
 	{
 		std::string line = "";
+		vertexShader = "";
 		while(getline(vertexShaderStream, line))
 			vertexShader += "\n" + line;
 		vertexShaderStream.close();
@@ -25,6 +26,7 @@ bool GLProgram::loadShaders(const char * vertex_file_path, const char * fragment
 	std::ifstream fragmentShaderStream(fragment_file_path, std::ios::in);
 	if(fragmentShaderStream.is_open()){
 		std::string line = "";
+		fragmentShader = "";
 		while(getline(fragmentShaderStream, line))
 			fragmentShader += "\n" + line;
 		fragmentShaderStream.close();

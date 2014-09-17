@@ -6,17 +6,161 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>396</width>
-    <height>296</height>
+    <width>710</width>
+    <height>395</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Rappelz Map Editor - OpenGL</string>
+   <string>Rappelz Map Editor</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
-     <widget class="GLViewport" name="widget" native="true"/>
+    <item row="1" column="1">
+     <widget class="QDoubleSpinBox" name="xSpinBox">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimum">
+       <double>-300000.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>300000.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="3">
+     <widget class="QDoubleSpinBox" name="ySpinBox">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimum">
+       <double>-300000.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>300000.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="4">
+     <widget class="QLabel" name="zLabel">
+      <property name="text">
+       <string>Z</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="5">
+     <widget class="QDoubleSpinBox" name="zSpinBox">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimum">
+       <double>-300000.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>300000.000000000000000</double>
+      </property>
+      <property name="value">
+       <double>10000.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="10">
+     <widget class="QLabel" name="movSpeedLabel">
+      <property name="text">
+       <string>MovSpd</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="7">
+     <widget class="QDoubleSpinBox" name="pitchSpinBox">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimum">
+       <double>-300000.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>300000.000000000000000</double>
+      </property>
+      <property name="value">
+       <double>35.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="2">
+     <widget class="QLabel" name="yLabel">
+      <property name="text">
+       <string>Y</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="xLabel">
+      <property name="text">
+       <string>X</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="6">
+     <widget class="QLabel" name="pitchLabel">
+      <property name="text">
+       <string>Pitch</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="8">
+     <widget class="QLabel" name="yawLabel">
+      <property name="text">
+       <string>Yaw</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="9">
+     <widget class="QDoubleSpinBox" name="yawSpinBox">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimum">
+       <double>-300000.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>300000.000000000000000</double>
+      </property>
+      <property name="value">
+       <double>45.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="11">
+     <widget class="QDoubleSpinBox" name="movSpeedSpinBox">
+      <property name="minimum">
+       <double>0.010000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>10000.000000000000000</double>
+      </property>
+      <property name="value">
+       <double>2000.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0" colspan="12">
+     <widget class="GLViewport" name="glViewport" native="true"/>
     </item>
    </layout>
   </widget>
@@ -25,10 +169,17 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>396</width>
+     <width>710</width>
      <height>21</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionOpen"/>
+   </widget>
+   <addaction name="menuFile"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -37,8 +188,14 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionOpen"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionOpen">
+   <property name="text">
+    <string>Open map</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>

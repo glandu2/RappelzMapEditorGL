@@ -1,6 +1,8 @@
 #include "GLRenderer.h"
 #include "GLMesh.h"
 #include <GL/glew.h>
+#include "GLViewport.h"
+#include "GLCamera.h"
 
 GLRenderer::GLRenderer(GLCamera* camera, GLViewport *viewport) : camera(camera), viewport(viewport) {
 }
@@ -15,6 +17,7 @@ void GLRenderer::render() {
 
 		mesh->select();
 
-		glDrawElements(mesh->getRenderType(), mesh->getIndicesCount(), mesh->getIndexSize(), reinterpret_cast<const GLvoid*>(mesh->getIndicesOffset()));
+		if(mesh->getIndicesCount() > 0)
+			glDrawElements(mesh->getRenderType(), mesh->getIndicesCount(), mesh->getIndexSize(), reinterpret_cast<const GLvoid*>(mesh->getIndicesOffset()));
 	}
 }

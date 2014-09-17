@@ -14,7 +14,7 @@ GLStaticMesh::GLStaticMesh() : renderType(RT_Triangles), vertexVboId(0), indexVb
 }
 
 void GLStaticMesh::loadFromNx3(const char* filename) {
-	ITmlFile* tmlfile = createTmlFile();
+	/*ITmlFile* tmlfile = createTmlFile();
 	tmlfile->loadNx3();
 	IBtrfParser* btrfParser = createBtrfParser(tmlfile);
 	IBtrfRootBlock* rootBlock;
@@ -90,7 +90,7 @@ void GLStaticMesh::loadFromNx3(const char* filename) {
 	indices.reserve(indexArrayLen);
 	indices.assign(indexArray, indexArray + indexArrayLen);
 
-	printf("Done loading %s\n", filename);
+	printf("Done loading %s\n", filename);*/
 }
 
 bool GLStaticMesh::loadToGpu() {

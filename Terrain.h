@@ -4,6 +4,7 @@
 #include "GLMesh.h"
 #include <vector>
 #include "glm/vec3.hpp"
+#include <string>
 
 class GLStaticMesh;
 class GLTexture;
@@ -18,6 +19,7 @@ public:
 	~Terrain();
 
 	bool loadFromNfm(const char* filename);
+	bool loadTexturesList(const char* terraintextureinfo);
 
 	virtual bool loadToGpu();
 	virtual void unloadFromGpu();
@@ -28,6 +30,8 @@ public:
 	virtual RenderType getRenderType(int batch = 0) { return RT_Triangles; }
 	virtual IndexSize getIndexSize(int batch = 0) { return IS_Int; }
 	virtual int getIndicesCount(int batch = 0) { return indices.size(); }
+
+	virtual bool needSelect() { return needReload; }
 
 protected:
 	void bindTextureUnit(int textureType, int texUnit, unsigned int texId, const char* uniformName);
@@ -62,10 +66,18 @@ private:
 	  int nSegmentCountPerMap;
 	  float fTileLength;
 	};
+
+	struct TextureInfo {
+		int id;
+		int tileSize;
+		std::string filename;
+	};
 #pragma pack(0)
 
 private:
 	Segment segments[64][64];
+
+	std::vector<TextureInfo> texturesList;
 
 	std::vector<glm::vec3> vertices;
 	std::vector<unsigned int> indices;
@@ -76,12 +88,8 @@ private:
 
 	unsigned int vertexVboId;
 	unsigned int indexVboId;
-};
 
-struct TextureFile {
-	int id;
-	int tileSize;
-	const char* filename;
+	bool needReload;
 };
 
 #endif // TERRAIN_H

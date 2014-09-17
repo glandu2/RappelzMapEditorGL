@@ -21,10 +21,10 @@ unix: LIBS += -lGLU -lGLEW
 SOURCES += main.cpp\
         MainWindow.cpp \
     GLViewport.cpp \
-    Simple-OpenGL-Image-Library/src/image_DXT.c \
-    Simple-OpenGL-Image-Library/src/image_helper.c \
-    Simple-OpenGL-Image-Library/src/SOIL.c \
-    Simple-OpenGL-Image-Library/src/stb_image_aug.c \
+    SOIL/src/image_DXT.c \
+    SOIL/src/image_helper.c \
+    SOIL/src/SOIL.c \
+    SOIL/src/stb_image_aug.c \
     GLTexture.cpp \
     MeshObjLoader.cpp \
     GLCamera.cpp \
@@ -38,12 +38,12 @@ SOURCES += main.cpp\
 
 HEADERS  += MainWindow.h \
     GLViewport.h \
-    Simple-OpenGL-Image-Library/src/image_DXT.h \
-    Simple-OpenGL-Image-Library/src/image_helper.h \
-    Simple-OpenGL-Image-Library/src/stbi_DDS_aug_c.h \
-    Simple-OpenGL-Image-Library/src/SOIL.h \
-    Simple-OpenGL-Image-Library/src/stb_image_aug.h \
-    Simple-OpenGL-Image-Library/src/stbi_DDS_aug.h \
+    SOIL/src/image_DXT.h \
+    SOIL/src/image_helper.h \
+    SOIL/src/stbi_DDS_aug_c.h \
+    SOIL/src/SOIL.h \
+    SOIL/src/stb_image_aug.h \
+    SOIL/src/stbi_DDS_aug.h \
     GLObject.h \
     GLTexture.h \
     MeshObjLoader.h \
@@ -54,7 +54,8 @@ HEADERS  += MainWindow.h \
     Terrain.h \
     GLStaticMesh.h \
     TerrainBlendMap.h \
-    TerrainTextureArray.h
+    TerrainTextureArray.h \
+    GLMesh.h
 
 FORMS    += MainWindow.ui
 
@@ -73,8 +74,8 @@ DEPENDPATH += $$PWD/../BTRFdom/shared-lib/common $$PWD/../BTRFdom/shared-lib/int
 unix:!macx: LIBS += -L$$PWD/../BTRFdom/build-linux-gnu-amd64-bin/ -lBTRFdom
 unix:!macx: PRE_TARGETDEPS += $$PWD/../BTRFdom/build-linux-gnu-amd64-bin/libBTRFdom.a
 
-win32: LIBS += -L$$PWD/../BTRFdom/build-msvc2010-bin/ -lBTRFdom
-win32: PRE_TARGETDEPS += $$PWD/../BTRFdom/build-msvc2010-bin/BTRFdom.lib
+#win32: LIBS += -L$$PWD/../BTRFdom/build-msvc2010-bin/ -lBTRFdom
+#win32: PRE_TARGETDEPS += $$PWD/../BTRFdom/build-msvc2010-bin/BTRFdom.lib
 
 
 ######################

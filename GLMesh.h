@@ -36,6 +36,7 @@ public:
 	virtual int getBatchCount() { return 1; }
 	virtual void select(int batch = 0) = 0;
 	virtual unsigned int getModelMatrix() { return 0xFFFFFFFF; }
+	virtual bool needSelect() { return true; }
 };
 
 #endif // GLMESH_H

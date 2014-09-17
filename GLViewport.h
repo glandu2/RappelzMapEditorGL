@@ -23,8 +23,28 @@ public:
 	virtual void resizeGL(int width, int height);
 	virtual void paintGL();
 
+	glm::mat4& getViewportMatrix() { return projectionMatrix; }
+	GLRenderer* getRenderer() { return renderer; }
+
+	void setSpeed(float speed) { this->speed = speed; }
+
 public slots:
 	virtual void updateGL();
+	void setCameraX(float x);
+	void setCameraY(float y);
+	void setCameraZ(float z);
+
+	void setCameraPitch(float pitch);
+	void setCameraYaw(float yaw);
+
+signals:
+	void initialized();
+	void cameraXChanged(float x);
+	void cameraYChanged(float y);
+	void cameraZChanged(float z);
+
+	void cameraPitchChanged(float pitch);
+	void cameraYawChanged(float yaw);
 
 protected:
 	virtual void keyPressEvent(QKeyEvent *keyEvent);
@@ -43,7 +63,7 @@ private:
 	GLuint vertexbuffer;
 
 	GLCamera* camera;
-	GLMesh* mesh;
+//	GLMesh* mesh;
 	GLRenderer* renderer;
 	GLProgram* program;
 	unsigned int cameraMatrixUniform;
@@ -66,6 +86,8 @@ private:
 	bool moveRightward;
 	bool moveDownward;
 	bool moveUpward;
+	bool speedBoost;
+	bool useOrtho;
 };
 
 #endif // GLVIEWPORT_H

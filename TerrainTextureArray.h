@@ -4,6 +4,7 @@
 #include "GLObject.h"
 #include <vector>
 #include <glm/vec4.hpp>
+#include <string>
 
 class TerrainTextureArray : public GLObject
 {
@@ -12,14 +13,14 @@ public:
 	TerrainTextureArray();
 	virtual ~TerrainTextureArray();
 
-	bool loadDDS(const std::vector<const char *> &filenames);
+	bool loadDDS(const std::vector<std::string> &filenames);
 
 	virtual bool loadToGpu();
 	virtual void unloadFromGpu();
 	virtual void select();
 	virtual void unselect();
 
-	std::vector<unsigned char *> imgData;
+	std::vector< std::vector<unsigned char> > imgData;
 	int width;
 	int height;
 	unsigned int format;
