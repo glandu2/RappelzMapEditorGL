@@ -249,31 +249,8 @@ void GLViewport::initializeGL() {
 	cameraPitch = cameraYaw = 0;
 
 	camera = new GLCamera;
-//	Terrain *terrain = new Terrain;
-//	mesh = terrain;
 	program = new GLProgram;
 	renderer = new GLRenderer(camera, this);
-
-	/*GLMesh::VertexAttribute vertex;
-	vertex.normal = glm::vec3(0.0);
-	vertex.texCoord = glm::vec2(0.0);
-
-	vertex.pos = glm::vec3(-1.0f, -1.0f, 0.0f);
-	mesh->vertexAttributes.push_back(vertex);
-
-	vertex.pos = glm::vec3(1.0f, -1.0f, 0.0f);
-	mesh->vertexAttributes.push_back(vertex);
-
-	vertex.pos = glm::vec3(0.0f,  1.0f, 0.0f);
-	mesh->vertexAttributes.push_back(vertex);
-
-	mesh->indices.push_back(0);
-	mesh->indices.push_back(1);
-	mesh->indices.push_back(2);*/
-
-	//mesh->loadFromNx3("test.nx3");
-//	terrain->loadFromNfm("maps/m009_006.nfm");
-//	mesh->loadToGpu();
 
 	program->loadShaders("vertex.glsl", "fragment.glsl");
 	program->loadToGpu();
@@ -282,8 +259,6 @@ void GLViewport::initializeGL() {
 
 	projectionMatrixUniform = glGetUniformLocation(program->getId(), "projectionMatrix");
 	cameraMatrixUniform = glGetUniformLocation(program->getId(), "cameraMatrix");
-
-	//renderer->addMesh(mesh);
 
 	resizeGL(width(), height());
 

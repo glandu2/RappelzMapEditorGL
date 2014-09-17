@@ -63,51 +63,6 @@ OTHER_FILES += \
     vertex.glsl \
     fragment.glsl
 
-
-######################
-# BTRFdom
-######################
-
-INCLUDEPATH += $$PWD/../BTRFdom/shared-lib/common $$PWD/../BTRFdom/shared-lib/interfaces
-DEPENDPATH += $$PWD/../BTRFdom/shared-lib/common $$PWD/../BTRFdom/shared-lib/interfaces
-
-unix:!macx: LIBS += -L$$PWD/../BTRFdom/build-linux-gnu-amd64-bin/ -lBTRFdom
-unix:!macx: PRE_TARGETDEPS += $$PWD/../BTRFdom/build-linux-gnu-amd64-bin/libBTRFdom.a
-
-#win32: LIBS += -L$$PWD/../BTRFdom/build-msvc2010-bin/ -lBTRFdom
-#win32: PRE_TARGETDEPS += $$PWD/../BTRFdom/build-msvc2010-bin/BTRFdom.lib
-
-
-######################
-# libuv
-######################
-
-#INCLUDEPATH += $$PWD/../RappelzUnified/libuv/include
-#DEPENDPATH += $$PWD/../RappelzUnified/libuv/include
-
-#unix:!macx: LIBS += -L$$PWD/../RappelzUnified/build-linux-amd64-bin/ -luv
-#unix:!macx: PRE_TARGETDEPS += $$PWD/../RappelzUnified/build-linux-amd64-bin/libuv.a
-
-#win32: LIBS += -L$$PWD/../RappelzUnified/build-windows8-msvc2010-x86-bin/ -luv
-#win32: PRE_TARGETDEPS += $$PWD/../RappelzUnified/build-windows8-msvc2010-x86-bin/uv.lib
-
-
-######################
-# RappelzLib
-######################
-
-#DEFINES += USING_RAPPELZLIB
-
-#INCLUDEPATH += $$PWD/../RappelzUnified/RappelzLib/src
-#DEPENDPATH += $$PWD/../RappelzUnified/RappelzLib/src
-
-#unix:!macx: LIBS += -L$$PWD/../RappelzUnified/build-linux-amd64-bin/ -lRappelzLib
-#unix:!macx: PRE_TARGETDEPS += $$PWD/../RappelzUnified/build-linux-amd64-bin/libRappelzLib.a
-
-#win32: LIBS += -L$$PWD/../RappelzUnified/build-windows8-msvc2010-x86-bin/ -lRappelzLib
-#win32: PRE_TARGETDEPS += $$PWD/../RappelzUnified/build-windows8-msvc2010-x86-bin/RappelzLib.lib
-
-
 ######################
 # glew (windows only)
 ######################

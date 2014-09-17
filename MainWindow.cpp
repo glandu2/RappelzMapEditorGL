@@ -34,7 +34,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(ui->yawSpinBox, SIGNAL(valueChanged(double)), this, SLOT(updateCameraYaw(double)));
 	connect(ui->movSpeedSpinBox, SIGNAL(valueChanged(double)), this, SLOT(updateCameraSpeed(double)));
 
-	ui->statusBar->showMessage("Use ZQSD or arrows to move, C/space to go up/downward, hold shift for 10x speed, mouse is like official: right click + drag move");
+	ui->statusBar->showMessage("Use ESDF or arrows to move, C/space to go up/downward, hold shift for 10x speed, mouse is like official: right click + drag move");
 
 	title = "Rappelz Map Viewer ~ Glandu2";
 	setWindowTitle(title);

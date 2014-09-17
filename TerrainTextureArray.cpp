@@ -30,6 +30,7 @@ bool TerrainTextureArray::loadDDS(const std::vector<std::string>& filenames)
 	format = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
 	width = 1;
 	height = 1;
+	bool ok = true;
 
 	std::vector<ImageInfo> images;
 
@@ -43,6 +44,7 @@ bool TerrainTextureArray::loadDDS(const std::vector<std::string>& filenames)
 
 		if(!imgInfo.data) {
 			printf("Faild to load texture %s\n", fullName.c_str());
+			ok = false;
 			continue;
 		}
 
@@ -109,7 +111,7 @@ bool TerrainTextureArray::loadDDS(const std::vector<std::string>& filenames)
 		imgData.push_back(data);
 	}
 
-	return true;
+	return ok;
 }
 
 bool TerrainTextureArray::loadToGpu() {
