@@ -1,4 +1,4 @@
-**[Release] Rappelz 3D Map Viewer**
+**Rappelz 3D Map Viewer**
 
 Here is a a 3D map viewer which allows viewing a map (nfm files).
 
